@@ -20,6 +20,13 @@ from log import set_logging
 from settings import MYSQL_CONFIG, ROBOT_USER_AGENTS
 
 
+USER_AGENT_LIST = [
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.1 Safari/605.1.15',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:60.0) Gecko/20100101 Firefox/60.0'
+]
+
+
 class ProxySpider(object):
     logger = logging.getLogger(__name__ + '.ProxySpider')
     config = {
@@ -28,8 +35,7 @@ class ProxySpider(object):
         'test_timeout': 5,
         'test_cases': [
             # ('https://www.baidu.com/', '030173', 'utf-8'),
-            ('https://www.panda.tv/', '31010802001046', 'utf-8'),
-            # ('http://dongqiudi.com/archives/1?page=10', '"tab_id":"1"', 'utf-8'),
+            ('http://dongqiudi.com/archives/1?page=10', '"tab_id":"1"', 'utf-8'),
         ]
     }
 
@@ -204,6 +210,7 @@ class ProxyVerifier(threading.Thread):
     def verify_proxy(self, proxy):
         proxy_handler = urllib.request.ProxyHandler({'http': proxy, 'https': proxy})
         opener = urllib.request.build_opener(proxy_handler)
+        opener.addheaders = [('User-Agent', random.choice(USER_AGENT_LIST))]
         try:
             for url, code, charset in self.test_cases:
                 html = opener.open(url, timeout=self.timeout).read().decode(charset)
