@@ -195,13 +195,13 @@ class ProxyVerifier(threading.Thread):
             if elements is None:
                 break
             ip, port, protocol = elements
-            proxy = '{}://{}:{}'.format('http', ip, port)
-            if self.verify_proxy(proxy):
-                self.logger.info('Proxy %s is verified.', proxy)
+            if self.verify_proxy(ip, port, protocol):
+                self.logger.info('Proxy %s://%s:%s is verified.', protocol, ip, port)
                 self.verified_proxies.put((ip, port, protocol))
             self.candidate_proxies.task_done()
 
-    def verify_proxy(self, proxy):
+    def verify_proxy(self, ip, port, protocol):
+        proxy = '{}:{}'.format(ip, port)
         proxy_handler = urllib.request.ProxyHandler({'http': proxy, 'https': proxy})
         opener = urllib.request.build_opener(proxy_handler)
         opener.addheaders = [('User-Agent', random.choice(BROWSER_USER_AGENTS))]
