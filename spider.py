@@ -17,14 +17,7 @@ import urllib.request
 from bs4 import BeautifulSoup
 
 from log import set_logging
-from settings import MYSQL_CONFIG, ROBOT_USER_AGENTS
-
-
-USER_AGENT_LIST = [
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.1 Safari/605.1.15',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:60.0) Gecko/20100101 Firefox/60.0'
-]
+from settings import MYSQL_CONFIG, BROWSER_USER_AGENTS
 
 
 class ProxySpider(object):
@@ -121,6 +114,7 @@ class ProxyCrawler(threading.Thread):
                     port = tds[1].text
                     protocol = tds[3].text.lower()
                     self.candidate_proxies.put((ip, port, protocol))
+                time.sleep(1)
         except Exception as e:
             self.logger.warning('Failed to crawl proxies from kuaidaili. Exception: %s', e)
 
@@ -174,7 +168,7 @@ class ProxyCrawler(threading.Thread):
         for i in range(5):
             try:
                 request = urllib.request.Request(url)
-                request.add_header("User-Agent", random.choice(ROBOT_USER_AGENTS))
+                request.add_header("User-Agent", random.choice(BROWSER_USER_AGENTS))
                 html = urllib.request.urlopen(request, timeout=10).read()
                 return BeautifulSoup(html, 'lxml')
             except Exception as e:
@@ -210,7 +204,7 @@ class ProxyVerifier(threading.Thread):
     def verify_proxy(self, proxy):
         proxy_handler = urllib.request.ProxyHandler({'http': proxy, 'https': proxy})
         opener = urllib.request.build_opener(proxy_handler)
-        opener.addheaders = [('User-Agent', random.choice(USER_AGENT_LIST))]
+        opener.addheaders = [('User-Agent', random.choice(BROWSER_USER_AGENTS))]
         try:
             for url, code, charset in self.test_cases:
                 html = opener.open(url, timeout=self.timeout).read().decode(charset)
